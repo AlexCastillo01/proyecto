@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pa que aprendan ingles</title>
+</head>
+<body>
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background-color: rgb(255, 151, 151);
+            font-family: 'ADLaM Display', sans-serif;
+            margin: 0;
+        }
+        header {
+            padding: 1rem;
+            display:block;
+            justify-content: flex-end;
+            background-color: rgb(241, 255, 90);
+        }
+        #search {
+            align-items: center;
+            background-color: rgb(104, 255, 62);
+            border: 2px solid rgb(0, 0, 0);
+            border-radius: 50px;
+            font-family: 'ADLaM Display', sans-serif;
+            font-size: 20px;
+            padding: 10px 15px;
+            color: rgb(0, 0, 0);
+        }
+        #search::placeholder {
+            color: rgb(0, 0, 0);
+        }
+        #search:focus {
+            outline: none;
+            background-color: rgb(255, 255, 255);
+            color: white;
+        }
+        .definition {
+            width: 300px;
+            margin: 10px;
+            background-color: rgb(255, 255, 255);
+            box-shadow: 0 5px 5px rgb(246, 255, 0);
+            position: static;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .definition-info {
+            color: rgb(0, 0, 0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+            padding: 5px 10px 10px;
+            letter-spacing: 1px;
+        }
+        .definition-info h3 {
+            margin-top: 0;
+        }
+        .overview {
+            background-color: #fff;
+            padding: 20px;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            max-height: 100%;
+            transform: translateY(101%);
+            overflow-y: auto;
+            transition: transform 0.3s ease-in;
+        }
+        .definition:hover .overview {
+            transform: translateY(0);
+        }
+    </style>
+     <img src="fondo.jpg" alt="">
+    <header>
+        <form id="form">
+            <h1>Diccionario Ingles a Español</h1>
+            <input type="text" id="search" class="search" placeholder="Buscar palabra">
+        </form>
+    </header>
+    <main id="main"></main>
+
+    <script>
+        const API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+        
+        const main = document.getElementById('main');
+        const form = document.getElementById('form');
+        const search = document.getElementById('search');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const searchTerm = search.value;
+            if (searchTerm && searchTerm !== '') {
+                getDefinitions(API_URL + searchTerm);
+                search.value = '';
+            } else {
+                window.location.reload();
+            }
+        });
+
+        async function getDefinitions(url) {
+            const res = await fetch(url);
+            const data = await res.json();
+            showDefinitions(data);
+        }
+
+        function showDefinitions(definitions) {
+            main.innerHTML = '';
+            definitions.forEach((definition) => {
+                const { word, phonetic, phonetics, origin, meanings } = definition;
+                const definitionElement = document.createElement('div');
+                definitionElement.classList.add('definition');
+
+                let phoneticsHTML = '';
+                phonetics.forEach((phonetic) => {
+                    phoneticsHTML += `
+                        <p>${phonetic.text}</p>
+                        ${phonetic.audio ? `<audio controls src="${phonetic.audio}">Your browser does not support the audio element.</audio>` : ''}
+                    `;
+                });
+
+                let meaningsHTML = '';
+                meanings.forEach((meaning) => {
+                    meaningsHTML += `<h4>${meaning.partOfSpeech}</h4><ul>`;
+                    meaning.definitions.forEach((def) => {
+                        meaningsHTML += `
+                            <li>${def.definition}</li>
+                            ${def.example ? `<p><strong>Example:</strong> ${def.example}</p>` : ''}
+                        `;
+                    });
+                    meaningsHTML += `</ul>`;
+                });
+
+                definitionElement.innerHTML = `
+                    <div class="definition-info">
+                        <h3>${word}</h3>
+                        <p>${phonetic}</p>
+                    </div>
+                    <div class="overview">
+                        <h4>Phonetics</h4>
+                        ${phoneticsHTML}
+                        <h4>Origin</h4>
+                        <p>${origin}</p>
+                        ${meaningsHTML}
+                    </div>
+                `;
+                main.appendChild(definitionElement);
+            });
+        }
+    </script>
+
+</body>
+</html>
+
